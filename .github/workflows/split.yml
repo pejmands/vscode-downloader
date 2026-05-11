@@ -1,0 +1,40 @@
+name: Split and Upload VS Code
+
+on:
+  workflow_dispatch:
+
+jobs:
+  split-and-upload:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Download VS Code from Microsoft
+        run: |
+          curl -L -o VSCodeSetup.exe "https://update.code.visualstudio.com/latest/win32-x64-user/stable"
+          echo "Download completed. Size:"
+          ls -lh VSCodeSetup.exe
+          
+      - name: Split file into 25MB chunks
+        run: |
+          mkdir -p chunks
+          split -b 25m -d VSCodeSetup.exe chunks/part.
+          echo "Split into:"
+          ls -lh chunks/
+          
+      - name: Create checksum file
+        run: |
+          sha256sum VSCodeSetup.exe > checksum.txt
+          cd chunks && sha256sum part.* >> ../checksum.txt
+          cd ..
+          
+      - name: Upload chunks to repository
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add chunks/ checksum.txt
+          git commit -m "Add split VS Code installer (chunks of 25MB)"
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
