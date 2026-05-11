@@ -1,0 +1,31 @@
+name: Store VSCode with LFS
+
+on:
+  workflow_dispatch:
+
+jobs:
+  store-with-lfs:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Install Git LFS
+        run: |
+          git lfs install
+          git lfs track "*.exe"
+          git add .gitattributes
+          
+      - name: Download VSCode
+        run: |
+          curl -L -o VSCodeSetup.exe "https://update.code.visualstudio.com/latest/win32-x64-user/stable"
+          
+      - name: Commit with LFS
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add VSCodeSetup.exe .gitattributes
+          git commit -m "Add VS Code with LFS"
+          git push
