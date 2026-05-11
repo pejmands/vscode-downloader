@@ -1,0 +1,31 @@
+name: Download VS Code from Microsoft
+
+on:
+  workflow_dispatch:
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download VS Code Installer
+        run: |
+          # استفاده از لینک 'latest' برای گرفتن آخرین نسخه
+          wget -O VSCodeSetup.exe "https://update.code.visualstudio.com/latest/win32-x64-user/stable"
+          
+      - name: Verify Download
+        run: |
+          # بررسی می‌کند که آیا فایل با موفقیت دانلود شده و خالی نیست
+          if [ ! -s VSCodeSetup.exe ]; then
+            echo "Error: File was not downloaded or is empty!"
+            exit 1
+          else
+            echo "File downloaded successfully. Size:"
+            ls -lh VSCodeSetup.exe
+          fi
+          
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: VSCode-Installer
+          path: VSCodeSetup.exe
+          if-no-files-found: error
